@@ -1,0 +1,187 @@
+SCR # 20
+  0 ( Game of life pixel editor )
+  1 100 CONSTANT XLIM
+  2 100 CONSTANT YLIM
+  3 VARIABLE PX
+  4 VARIABLE PY  ( PIXEL EDITOR'S X & Y POSITIONS )
+  5 VARIABLE CELLCOUNT
+  6 VARIABLE CELLX
+  7 VARIABLE CELLY
+  8
+  9 : XORDOT ( X Y -- XOR'S DOT ON SCREEN )
+ 10    OVER OVER @DOT 1 XOR !DOT
+ 11 ;
+ 12 : BLINKDOT ( X Y -- BLINKS DOT ON SCREEN )
+ 13    OVER OVER XORDOT  50 MS XORDOT   50 MS
+ 14 ;
+ 15 -->
+SCR # 21
+  0 ( Pixel editor basic commands )
+  1 : MOVEUP PY @ 1 > IF PY 1-! THEN ;
+  2
+  3 : MOVEDOWN PY @ YLIM 1 - < IF PY 1+! THEN ;
+  4
+  5 : MOVELEFT PX @ 1 > IF PX 1-! THEN ;
+  6
+  7 : MOVERIGHT PX @ XLIM 1 - < IF PX 1+! THEN ;
+  8
+  9
+ 10
+ 11
+ 12
+ 13
+ 14
+ 15 -->
+SCR # 22
+  0 : PSET PX @ PY @ 1 !DOT ;
+  1
+  2 : PRESET PX @ PY @ 0 !DOT ;
+  3
+  4
+  5
+  6
+  7
+  8
+  9
+ 10
+ 11
+ 12
+ 13
+ 14
+ 15 -->
+SCR # 23
+  0 ( PIXEL EDITOR CASE STATEMENT )
+  1 : PEPROCESS
+  2    CASE
+  3       200 =: MOVEUP ;;
+  4       208 =: MOVEDOWN ;;
+  5       203 =: MOVELEFT ;;
+  6       205 =: MOVERIGHT ;;
+  7       115 =: PSET ;;
+  8       83  =: PSET ;;
+  9       114 =: PRESET ;;
+ 10       82  =: PRESET ;;
+ 11       NOCASE =: NOOP ;;
+ 12    CASEND
+ 13 ;
+ 14
+ 15 -->
+SCR # 24
+  0 ( START OF ACTUAL PIXEL EDITOR )
+  1
+  2 : PEDIT
+  3    BEGIN
+  4       0
+  5       BEGIN
+  6          DROP PX @ PY @ BLINKDOT ?KEY DUP
+  7       UNTIL
+  8       DUP DUP 98 = 0= SWAP 66 = 0= AND
+  9    WHILE
+ 10       PEPROCESS
+ 11    REPEAT
+ 12    DROP
+ 13 ;
+ 14
+ 15 -->
+SCR # 25
+  0 ( life generation )     HEX
+  1 : DISPGEN ( MOVE GENERATION FROM STORAGE TO DISPLAY )
+  2    1F40 0 DO
+  3       B800 I 28 + B800 I 28 SEGCMOVE
+  4    50 +LOOP
+  5    1F40 0 DO
+  6       BA00 I 28 + BA00 I 28 SEGCMOVE
+  7    50 +LOOP
+  8 ;
+  9
+ 10
+ 11
+ 12
+ 13
+ 14
+ 15 DECIMAL -->
+SCR # 26
+  0 ( CELL MOVING ROUTINES )
+  1 : SETCELL SWAP 160 + SWAP 1 !DOT ;
+  2 : RESETCELL SWAP 160 + SWAP 0 !DOT ;
+  3
+  4 : TRANCELL
+  5    OVER OVER @DOT 1 AND
+  6    ROT 160 + ROT ROT !DOT
+  7 ;
+  8
+  9
+ 10
+ 11
+ 12
+ 13
+ 14
+ 15 -->
+SCR # 27
+  0 ( COUNTS THE NUMBER OF NEIGHBORS OF A CELL )
+  1 : CHECKCELLS ( X Y -- ADJUSTS CELLCOUNT )
+  2    OVER OVER  SWAP 1 - SWAP 1 - @DOT IF CELLCOUNT 1+! THEN
+  3    OVER OVER                1 - @DOT IF CELLCOUNT 1+! THEN
+  4    OVER OVER  SWAP 1 + SWAP 1 - @DOT IF CELLCOUNT 1+! THEN
+  5    OVER OVER  SWAP 1 - SWAP     @DOT IF CELLCOUNT 1+! THEN
+  6    OVER OVER  SWAP 1 + SWAP     @DOT IF CELLCOUNT 1+! THEN
+  7    OVER OVER  SWAP 1 - SWAP 1 + @DOT IF CELLCOUNT 1+! THEN
+  8    OVER OVER                1 + @DOT IF CELLCOUNT 1+! THEN
+  9               SWAP 1 + SWAP 1 + @DOT IF CELLCOUNT 1+! THEN
+ 10 ;
+ 11
+ 12
+ 13
+ 14
+ 15 -->
+SCR # 28
+  0 ( DO THE LIFE GENERATION )
+  1 : GENERATE
+  2    XLIM 1 DO
+  3       YLIM 1 DO J CELLX ! I CELLY !
+  4          0 CELLCOUNT !  J I CHECKCELLS CELLCOUNT @
+  5          CASE
+  6             2 <: CELLX @ CELLY @ RESETCELL ;;
+  7             3 >: CELLX @ CELLY @ RESETCELL ;;
+  8             3 =: CELLX @ CELLY @ SETCELL   ;;
+  9             2 =: CELLX @ CELLY @ TRANCELL  ;;
+ 10             NOCASE =: NOOP ;;
+ 11          CASEND
+ 12       LOOP
+ 13    LOOP
+ 14 ;
+ 15 -->
+SCR # 29
+  0 ( DO THE LIFE GENERATION )
+  1 : GENERATIONS
+  2    0
+  3    BEGIN
+  4       DROP
+  5       GENERATE
+  6       DISPGEN
+  7       ?KEY DUP
+  8    UNTIL
+  9 ;
+ 10
+ 11
+ 12
+ 13
+ 14
+ 15 -->
+SCR # 30
+  0 ( THE ACTUAL GAME OF LIFE )
+  1 : LIFE
+  2    3 MODE 5 MODE
+  3    BEGIN
+  4       XLIM 2 / PX ! YLIM 2 / PY !
+  5       PEDIT
+  6       GENERATIONS
+  7       27 =
+  8    UNTIL
+  9    3 MODE
+ 10 ;
+ 11
+ 12
+ 13
+ 14
+ 15

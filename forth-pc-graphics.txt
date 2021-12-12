@@ -1,0 +1,34 @@
+SCR # 16
+  0 ( *** IBM-PC Color Graphics Interface *** ) HEX
+  1 CODE MODE  ( val --- ...sets video mode)
+  2    AX POP,  VIDEO CALL,  NEXT,  END-CODE
+  3 3 CONSTANT TEXT   6 CONSTANT GRAPHICS
+  4 VARIABLE ATTR  ( attribute for line plot) 7 ATTR !
+  5 CODE PALLETE  ( val --- ...set color palette)
+  6    09 # AH MOV,  BX POP,  VIDEO CALL,  NEXT,  END-CODE
+  7 CODE !DOT  ( x y color --- ...plot dot)
+  8    AX POP,  0C # AH MOV,  DX POP,  CX POP,
+  9    VIDEO CALL,  NEXT,  END-CODE
+ 10 CODE @DOT  ( x y --- val ...read dot)
+ 11    0D # AH MOV,  DX POP,  CX POP,  VIDEO CALL,
+ 12    0 # AH MOV,  APUSH,  END-CODE
+ 13 DECIMAL -->
+ 14
+ 15
+SCR # 17
+  0 ( Color Graphics Interface -- 2)
+  1 2VARIABLE INCR
+  2 : XBIGGER ( x1 y1 x2 y2 --- ...plot where x2-x1 > y2-y1)
+  3    3 PICK 2 PICK > IF 2SWAP THEN 4DUP ROT - ROT ROT SWAP -
+  4    SWAP 1000 SS*D ROT M/MOD S>D INCR 2! 2DROP SWAP 1000
+  5    SS*D 3 ROLL 3 ROLL SWAP DO 2DUP 1000 M/MOD SWAP DROP I
+  6    SWAP ATTR @ !DOT INCR 2@ D+ LOOP 2DROP ;
+  7 : YBIGGER  ( x1 y1 x2 y2 --- ...plot where y2-y1 > x2-x1)
+  8    2 PICK OVER > IF 2SWAP THEN 4DUP ROT - ROT ROT SWAP -
+  9    1000 SS*D ROT M/MOD S>D INCR 2! DROP SWAP DROP ROT
+ 10    1000 SS*D 3 ROLL 3 ROLL SWAP DO 2DUP 1000 M/MOD SWAP
+ 11    DROP I ATTR @ !DOT INCR 2@ D+ LOOP 2DROP ;
+ 12 : !LINE  ( x1 y1 x2 y2 --- ...draw vector)
+ 13    4DUP ROT - ABS ROT ROT SWAP - ABS < IF XBIGGER ELSE
+ 14    YBIGGER THEN ;
+ 15 ;S
